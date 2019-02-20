@@ -1,94 +1,151 @@
-import engineio 
+import engineio
 import eventlet
+eventlet.monkey_patch()
 import socketio
 import time
+import json
+import numpy as np
 
 from flserver import FLServer
 
 sio = socketio.Server(async_mode='eventlet')
 app = socketio.Middleware(sio)
 count_clients = 0
-conn_threshold  = 4
-update_threshold = 2
+conn_threshold  = 3
+update_threshold = 3
 updates_received = 0
 client_updates = {}
 server_wait_time = 5
+suv_dictionary = {}
+
 
 fl_server = FLServer()
 
+diffie_parameters = fl_server.diffie_parameters()
+pub_keys = {}
+
 @sio.on('connect')
 def connect(sid, environ):
-  global count_clients
-  count_clients+=1
-  print('connect')
-  client_updates[sid] = 0
+    global count_clients
+    count_clients+=1
+    print('connect')
+    client_updates[sid] = 0
+
   #sio.emit('my message', {'data': 'foobar'})
 
-@sio.on('my message')
+@sio.on('message')
 def message(sid, data):
     print('message ', data)
 
 @sio.on('disconnect')
 def disconnect(sid):
-  global count_clients
-  count_clients-=1
-  client_updates.pop(sid)
-  print('disconnect ', sid)
+    global count_clients
+    count_clients-=1
+    client_updates.pop(sid)
+    print('disconnect ', sid)
 
 @sio.on('get_updates')
 def get_updates(sid, update):
-  global updates_received, client_updates
-  updates_received += 1
-  client_updates[sid] = update
+    global updates_received, client_updates
+    updates_received += 1
+    update = np.array(update)
+    client_updates[sid] = update
 
+@sio.on('receive_public_key')
+def receive_public_key(sid, data):
+    print("Insideeeeeeee")
+    global pub_keys
+    pub_keys[sid] = data
+    print("received pub key:")
+    print(data)
+    print("pub key dictionary")
+    print(pub_keys)
+
+
+@sio.on('receive_perturb')
+def receive_perturb(sid,suv_dict):
+    global suv_dictionary
+    #suv_dict = json.loads(jsonified_dict)
+    suv_dictionary[sid] = suv_dict
+
+@sio.on('train_status')
+def train_status(sid):
+    print("Inside train_status")
+    #print("train status: " + data)
+    #secure_agg()
 
 def connServ():
-  eventlet.wsgi.server(eventlet.listen(('', 8004)), app)
+    eventlet.wsgi.server(eventlet.listen(('', 8003)), app)
 
 '''
 def emitServ():
-  while True: 
+  while True:
     eventlet.greenthread.sleep(seconds=5)
     sio.emit('my message','hello')
 '''
 
 def send_model():
-  global count_clients, conn_threshold 
-  #print('send')
-  if count_clients >= conn_threshold :
-    #if all(value == None for value in client_updates.values()):
-    model_parameters = fl_server.pass_model_parameters()
-    sio.emit('receive_model', model_parameters)
-    return True 
-  return False
+    global count_clients, conn_threshold
+    if count_clients >= conn_threshold :
+        print('threshold reached')
+        model_parameters = fl_server.pass_model_parameters()
+        #sio.emit('message','server sent you data')
+        sio.emit('receive_model', model_parameters)
+        secure_agg()
+        return True
+    return False
+
+def diffie_hellman():
+    global pub_keys, diffie_parameters
+    sio.emit('receive_diffie_params', diffie_parameters)
+    while len(pub_keys)<count_clients:
+        eventlet.greenthread.sleep(seconds=5)
+    #print (len(pub_keys))
+    print("Inside Diffie Hellman printing public key dictionary")
+    print (pub_keys)
+    sio.emit('receive_pub_keys', pub_keys)
+
+def secure_agg():
+    global count_clients
+    print("Inside secure aggregation")
+    #sio.emit('message','server sent you data')
+    diffie_hellman()
+    sio.emit('send_perturbs','Send me the perturbations')
+    while len(suv_dictionary) < count_clients:
+        eventlet.greenthread.sleep(seconds=5)
+    print ("PRINTING SUV DICTIONARY")
+    print (suv_dictionary)
+    encrypted_suv = fl_server.perturb_util1(suv_dictionary)
+    for key, values in encrypted_suv.items():
+        sio.emit('receive_suvs',values,room=key)
+
 
 
 def federating_process():
   global count_clients, updates_received, update_threshold, client_updates
   while True:
     eventlet.greenthread.sleep(seconds=5)
-    #print('inside f')
     if  send_model():
-      eventlet.greenthread.sleep(seconds=server_wait_time)     
-      while updates_received < update_threshold:
-        eventlet.greenthread.sleep(seconds=5)
-        continue
-      for key, value in client_updates.items():
-        if value is 0:
-          sio.emit('my message','stop training. new model on the way', room=key)
-      fl_server.averaging(client_updates)
+        #secure_agg()
+        eventlet.greenthread.sleep(seconds=server_wait_time)
+        while updates_received < count_clients:
+            eventlet.greenthread.sleep(seconds=5)
+        print("PRINTING CLIENT UPDATES:")
+        print(client_updates)
+        for key, value in client_updates.items():
+            if value is 0:
+                sio.emit('my message','stop training. new model on the way', room=key)
+        fl_server.averaging(client_updates)
       #print (client_updates)
-      for key, value in client_updates.items():
-        client_updates[key] = 0
-      updates_received = 0
+        for key, value in client_updates.items():
+            client_updates[key] = 0
+        updates_received = 0
 
-      
 
-        
 
 if __name__ == '__main__':
-  pool = eventlet.GreenPool()
-  pool.spawn(connServ)
-  #pool.spawn(emitServ)
-  pool.spawn(federating_process)
-  pool.waitall()
+    pool = eventlet.GreenPool()
+    pool.spawn(connServ)
+    #pool.spawn(emitServ)
+    pool.spawn(federating_process)
+    pool.waitall()
