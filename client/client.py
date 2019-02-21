@@ -1,5 +1,6 @@
 import socketio
 from flclient import FLClient
+from keras import backend as K
 
 import json
 import numpy as np
@@ -16,7 +17,6 @@ def weights_from_json(model_weights_json):
 
 sio = socketio.Client()
 
-fl_client = FLClient()
 
 @sio.on('connect')
 def on_connect():
@@ -35,6 +35,7 @@ def on_disconnect():
 @sio.on('send_model')
 def on_send_model(model_json):
 	print(' model received ')
+	fl_client = FLClient()
 	dict = json.loads(model_json)
 	model = model_from_json(json.dumps(dict["structure"]))
 	fl_client.set_model(model)
@@ -43,11 +44,13 @@ def on_send_model(model_json):
 	fl_client.train_model()
 	updates_json = fl_client.get_updates_json(model_weights)
 	print(' sending updates to server ')
+	K.clear_session()
 	sio.emit('send_model_updates', updates_json)
 
 @sio.on('dummy')
 def on_dummy(model_json):
 	print(' model received ')
+	fl_client = FLClient()
 	dict = json.loads(model_json)
 	model = model_from_json(json.dumps(dict["structure"]))
 	fl_client.set_model(model)
@@ -55,6 +58,7 @@ def on_dummy(model_json):
 	fl_client.set_weights(model_weights)
 	fl_client.train_model()
 	updates_json = fl_client.get_updates_json(model_weights)
+	K.clear_session()
 	# print(' sending updates to server ')
 	# sio.emit('send_model_updates', updates_json)
 
