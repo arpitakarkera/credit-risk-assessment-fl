@@ -5,6 +5,7 @@ import socketio
 import time
 import json
 import numpy as np
+import pyDHE
 
 from flserver import FLServer
 
@@ -53,13 +54,13 @@ def get_updates(sid, update):
 
 @sio.on('receive_public_key')
 def receive_public_key(sid, data):
-    print("Insideeeeeeee")
+    #print("Insideeeeeeee")
     global pub_keys
     pub_keys[sid] = data
-    print("received pub key:")
+    '''print("received pub key:")
     print(data)
     print("pub key dictionary")
-    print(pub_keys)
+    print(pub_keys)'''
 
 
 @sio.on('receive_perturb')
@@ -67,6 +68,8 @@ def receive_perturb(sid,suv_dict):
     global suv_dictionary
     #suv_dict = json.loads(jsonified_dict)
     suv_dictionary[sid] = suv_dict
+    #print("PRINTING SUV DICTIONARY ON SERVER")
+    #print(suv_dictionary)
 
 @sio.on('train_status')
 def train_status(sid):
@@ -96,33 +99,44 @@ def send_model():
     return False
 
 def diffie_hellman():
-    global pub_keys, diffie_parameters
+    '''global pub_keys, diffie_parameters
     sio.emit('receive_diffie_params', diffie_parameters)
     while len(pub_keys)<count_clients:
         eventlet.greenthread.sleep(seconds=5)
     #print (len(pub_keys))
     print("Inside Diffie Hellman printing public key dictionary")
     print (pub_keys)
-    sio.emit('receive_pub_keys', pub_keys)
+    sio.emit('receive_pub_keys', pub_keys)'''
+    global pub_keys
+    sio.emit('get_public_keys','send me public keys')
+    while len(pub_keys)<count_clients:
+        eventlet.greenthread.sleep(seconds=5)
+    #print("PUBLIC KEYS RECEIVED")
+    #print(pub_keys)
+    sio.emit('receive_pub_keys',pub_keys)
+    eventlet.greenthread.sleep(seconds=5)
 
 def secure_agg():
-    global count_clients
+    global count_clients, suv_dictionary
     print("Inside secure aggregation")
     #sio.emit('message','server sent you data')
     diffie_hellman()
     sio.emit('send_perturbs','Send me the perturbations')
     while len(suv_dictionary) < count_clients:
         eventlet.greenthread.sleep(seconds=5)
-    print ("PRINTING SUV DICTIONARY")
-    print (suv_dictionary)
-    encrypted_suv = fl_server.perturb_util1(suv_dictionary)
-    for key, values in encrypted_suv.items():
+    #print("PRINTING SUV DICTIONARY:")
+    #print(suv_dictionary)
+    #length_dict = {key: len(value) for key, value in suv_dictionary.items()}
+    #print("SIZE PRINTING")
+    #print(length_dict)
+    encrypted_suv_clientwise = fl_server.perturb_util1(suv_dictionary)
+    for key, values in encrypted_suv_clientwise.items():
         sio.emit('receive_suvs',values,room=key)
 
 
 
 def federating_process():
-  global count_clients, updates_received, update_threshold, client_updates
+  global count_clients, updates_received, update_threshold, client_updates, suv_dictionary
   while True:
     eventlet.greenthread.sleep(seconds=5)
     if  send_model():
@@ -130,16 +144,19 @@ def federating_process():
         eventlet.greenthread.sleep(seconds=server_wait_time)
         while updates_received < count_clients:
             eventlet.greenthread.sleep(seconds=5)
-        print("PRINTING CLIENT UPDATES:")
-        print(client_updates)
+        #print("PRINTING CLIENT UPDATES:")
+        #print(client_updates)
         for key, value in client_updates.items():
             if value is 0:
                 sio.emit('my message','stop training. new model on the way', room=key)
         fl_server.averaging(client_updates)
+        sio.emit('clear_round','Clear the round rn')
       #print (client_updates)
         for key, value in client_updates.items():
             client_updates[key] = 0
         updates_received = 0
+        suv_dictionary = {}
+        print("-------------------------------------------ROUND COMPLETED-----------------------------------------------------------------------------")
 
 
 
