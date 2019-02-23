@@ -6,11 +6,12 @@ import time
 import json
 import numpy as np
 import pyDHE
-
+import retry
 from flserver import FLServer
 
 sio = socketio.Server(async_mode='eventlet')
 app = socketio.Middleware(sio)
+
 count_clients = 0
 conn_threshold  = 3
 update_threshold = 3
@@ -18,6 +19,8 @@ updates_received = 0
 client_updates = {}
 server_wait_time = 5
 suv_dictionary = {}
+count_train_done = 0
+count_shared_done = 0
 
 
 fl_server = FLServer()
@@ -30,7 +33,7 @@ def connect(sid, environ):
     global count_clients
     count_clients+=1
     print('connect')
-    client_updates[sid] = 0
+    client_updates[sid] = ""
 
   #sio.emit('my message', {'data': 'foobar'})
 
@@ -49,7 +52,6 @@ def disconnect(sid):
 def get_updates(sid, update):
     global updates_received, client_updates
     updates_received += 1
-    update = np.array(update)
     client_updates[sid] = update
 
 @sio.on('receive_public_key')
@@ -71,11 +73,18 @@ def receive_perturb(sid,suv_dict):
     #print("PRINTING SUV DICTIONARY ON SERVER")
     #print(suv_dictionary)
 
-@sio.on('train_status')
-def train_status(sid):
-    print("Inside train_status")
-    #print("train status: " + data)
+@sio.on('training_status')
+def training_status(sid, data):
+    global count_train_done
+    count_train_done+=1
+    print("train status: " + data)
     #secure_agg()
+
+@sio.on('shared_key_status')
+def shared_key_status(sid, data):
+    global count_shared_done
+    count_shared_done+=1
+    print("shared status: "+ data)
 
 def connServ():
     eventlet.wsgi.server(eventlet.listen(('', 8003)), app)
@@ -88,13 +97,15 @@ def emitServ():
 '''
 
 def send_model():
-    global count_clients, conn_threshold
+    global count_clients, conn_threshold, count_train_done
     if count_clients >= conn_threshold :
         print('threshold reached')
-        model_parameters = fl_server.pass_model_parameters()
+        #model_parameters = fl_server.pass_model_parameters()
         #sio.emit('message','server sent you data')
-        sio.emit('receive_model', model_parameters)
-        secure_agg()
+        sio.emit('receive_model', '{"structure" : ' + retry.model_json + ', "weights" : ' + retry.model_weights_json + '}')
+        #secure_agg()
+        while count_train_done < count_clients:
+            eventlet.greenthread.sleep(seconds=5)
         return True
     return False
 
@@ -107,14 +118,17 @@ def diffie_hellman():
     print("Inside Diffie Hellman printing public key dictionary")
     print (pub_keys)
     sio.emit('receive_pub_keys', pub_keys)'''
-    global pub_keys
+    global pub_keys, count_shared_done
     sio.emit('get_public_keys','send me public keys')
     while len(pub_keys)<count_clients:
         eventlet.greenthread.sleep(seconds=5)
     #print("PUBLIC KEYS RECEIVED")
     #print(pub_keys)
     sio.emit('receive_pub_keys',pub_keys)
-    eventlet.greenthread.sleep(seconds=5)
+    #sio.emit('wait_shared_key',count_clients)
+    while count_shared_done < count_clients:
+        eventlet.greenthread.sleep(seconds=5)
+
 
 def secure_agg():
     global count_clients, suv_dictionary
@@ -141,21 +155,26 @@ def federating_process():
     eventlet.greenthread.sleep(seconds=5)
     if  send_model():
         #secure_agg()
-        eventlet.greenthread.sleep(seconds=server_wait_time)
+        print("INSIDE SEND MODEL")
+        #eventlet.greenthread.sleep(seconds=server_wait_time)
+        secure_agg()
         while updates_received < count_clients:
             eventlet.greenthread.sleep(seconds=5)
+
         #print("PRINTING CLIENT UPDATES:")
         #print(client_updates)
-        for key, value in client_updates.items():
-            if value is 0:
-                sio.emit('my message','stop training. new model on the way', room=key)
+        #for key, value in client_updates.items():
+        #    if not value:
+        #        sio.emit('message','stop training. new model on the way', room=key)
         fl_server.averaging(client_updates)
         sio.emit('clear_round','Clear the round rn')
       #print (client_updates)
         for key, value in client_updates.items():
-            client_updates[key] = 0
+            client_updates[key] = ""
         updates_received = 0
         suv_dictionary = {}
+        count_train_done = 0
+        count_shared_done = 0
         print("-------------------------------------------ROUND COMPLETED-----------------------------------------------------------------------------")
 
 

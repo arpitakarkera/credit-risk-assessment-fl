@@ -1,15 +1,24 @@
 import socketio
 import json
 import pyDHE
+import time
+
 #import logging as log
+from secure_aggregation import SecureAggregation
 from flclient import FLClient
+from keras import backend as K
+from keras.models import model_from_json
+import tensorflow as tf
 
 sio = socketio.Client()
 
-fl_client = FLClient()
+fl_client = None
+sa_client = SecureAggregation()
 var = 0
 Alice = None
 pkey = None
+updates = []
+
 
 @sio.on('connect')
 def on_connect():
@@ -30,8 +39,11 @@ def on_disconnect():
 
 @sio.on('send_perturbs')
 def on_send_perturbs(data):
+	global updates
 	print(data)
-	suv_dict = fl_client.encryption()
+	while not updates:
+		time.sleep(5)
+	suv_dict = sa_client.encryption(updates)
 	#print("SUV DICT AFTER ENCRYPTION:")
 	#print(suv_dict)
 	#print (suv_dict)
@@ -57,11 +69,24 @@ def receive_diffie_params(data):
 def receive_pub_keys(pub_keys):
 	#fl_client.receive_pub_keys(pub_keys)
 '''
+@sio.on('wait_shared_key')
+def on_wait_shared_key(data):
+
+	skey = sa_client.get_shared_key_length()
+	while(skey < data):
+		time.sleep(5)
+		skey = sa_client.get_shared_key_length()
+
 @sio.on('receive_pub_keys')
 def receive_pub_keys(pub_keys):
 	global Alice
 	print("Received public keys")
-	fl_client.receive_pub_keys(pub_keys,Alice)
+	tf = False
+	tf = sa_client.receive_pub_keys(pub_keys,Alice)
+	#while not tf:
+	#	time.sleep(5)
+	#tf = False
+	sio.emit('shared_key_status','shared keys made')
 
 @sio.on('get_public_keys')
 def on_get_public_keys(data):
@@ -72,20 +97,36 @@ def on_get_public_keys(data):
 
 @sio.on('clear_round')
 def on_clear_round(data):
-	fl_client.deleteVal()
+	global updates
+	updates = []
+	sa_client.deleteVal()
 
 @sio.on('receive_model')
-def on_receive_model(data):
-	print('message received with ', data)
-	if fl_client.train_model(data):
-		print("train =True")
-		sio.emit('train_status')
+def on_receive_model(model_json):
+	global updates
+	print('message received with ', model_json)
+	fl_client = FLClient()
+	dict = json.loads(model_json)
+	model = model_from_json(json.dumps(dict["structure"]))
+	fl_client.set_model(model)
+	model_weights = fl_client.weights_from_json(json.dumps(dict["weights"]))
+	fl_client.set_weights(model_weights)
+	updates = fl_client.train_model(model_weights)
+
+	sio.emit('training_status','training done')
+	#updates_json = fl_client.get_updates_json(model_weights)
+
+	print(' sending updates to server ')
+	K.clear_session()
+	#sio.emit('send_model_updates', updates_json)
+
 		#sio.emit('message','This message has been successfully received')
 
 
 @sio.on('receive_suvs')
 def on_receive_suvs(encrypted_suv_clientwise):
-	fl_client.decryption(encrypted_suv_clientwise)
-	sio.emit('get_updates', fl_client.create_update())
+	sa_client.decryption(encrypted_suv_clientwise)
+	sio.emit('get_updates', sa_client.create_update())
+
 
 sio.connect('http://0.0.0.0:8003')

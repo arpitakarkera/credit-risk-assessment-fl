@@ -1,5 +1,6 @@
 import sympy
 import numpy as np
+import json
 
 class FLServer:
 	encrypted_suvs_clientwise = {}
@@ -13,13 +14,27 @@ class FLServer:
 	def deleteVal(self):
 		self.encrypted_suvs_clientwise = {}
 
+	def weights_from_json(self, model_weights_json):
+		json_load = json.loads(model_weights_json)
+		model_weights_list = np.array(json_load)
+		model_weights = []
+		for i in model_weights_list:
+			model_weights.append(np.array(i,dtype=np.float32))
+		return model_weights
+
 	def averaging(self, updates):
 		for key, value in updates.items():
-			shp = value.shape
-			break
-		sum_updates = np.zeros(shp)
+			updates[key] = self.weights_from_json(value)
+		sum_updates = []
 		for key, value in updates.items():
-			sum_updates = np.add(sum_updates, value)
+			for item in value:
+				sum_updates.append(np.zeros_like(item))
+			break
+
+		for key, value in updates.items():
+			for i in range(0, len(value)):
+				sum_updates[i] = np.add(sum_updates[i], value[i])
+
 		print("PRINTING SUM UPDATES:")
 		print(sum_updates)
 		#print("ENCRYPTED SUVS CLIENTWISE")
