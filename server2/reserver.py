@@ -8,6 +8,7 @@ import numpy as np
 import pyDHE
 import retry
 from flserver import FLServer
+import pandas as pd
 
 sio = socketio.Server(async_mode='eventlet')
 app = socketio.Middleware(sio)
@@ -21,6 +22,9 @@ server_wait_time = 5
 suv_dictionary = {}
 count_train_done = 0
 count_shared_done = 0
+fin_weights_str = retry.model_weights_json
+fin_struct = retry.model_json
+fin_weights = []
 
 
 fl_server = FLServer()
@@ -97,12 +101,13 @@ def emitServ():
 '''
 
 def send_model():
-    global count_clients, conn_threshold, count_train_done
+    global count_clients, conn_threshold, count_train_done, fin_weights, fin_weights_str
     if count_clients >= conn_threshold :
         print('threshold reached')
         #model_parameters = fl_server.pass_model_parameters()
         #sio.emit('message','server sent you data')
-        sio.emit('receive_model', '{"structure" : ' + retry.model_json + ', "weights" : ' + retry.model_weights_json + '}')
+        sio.emit('receive_model', '{"structure" : ' + fin_struct + ', "weights" : ' + fin_weights_str + '}')
+        fin_weights = fl_server.weights_from_json(fin_weights_str)
         #secure_agg()
         while count_train_done < count_clients:
             eventlet.greenthread.sleep(seconds=5)
@@ -150,7 +155,7 @@ def secure_agg():
 
 
 def federating_process():
-  global count_clients, updates_received, update_threshold, client_updates, suv_dictionary
+  global count_clients, updates_received, update_threshold, client_updates, suv_dictionary, fin_weights, fin_weights_str
   while True:
     eventlet.greenthread.sleep(seconds=5)
     if  send_model():
@@ -166,7 +171,13 @@ def federating_process():
         #for key, value in client_updates.items():
         #    if not value:
         #        sio.emit('message','stop training. new model on the way', room=key)
-        fl_server.averaging(client_updates)
+        sum_updates = fl_server.averaging(client_updates)
+        for i in range(0,len(sum_updates)):
+            print(fin_weights[i].shape)
+            print(sum_updates[i].shape)
+            fin_weights[i] = np.add(fin_weights[i],sum_updates[i])
+
+        fin_weights_str = pd.Series(fin_weights).to_json(orient='values')
         sio.emit('clear_round','Clear the round rn')
       #print (client_updates)
         for key, value in client_updates.items():

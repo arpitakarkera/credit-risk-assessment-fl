@@ -6,7 +6,7 @@ import pandas as pd
 import json
 
 DATA_FILE = "../data.csv"
-EPOCHS = 50
+EPOCHS = 150
 BATCH_SIZE = 10
 
 class FLClient:

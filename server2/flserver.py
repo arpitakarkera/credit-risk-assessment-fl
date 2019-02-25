@@ -40,6 +40,7 @@ class FLServer:
 		#print("ENCRYPTED SUVS CLIENTWISE")
 		#print(self.encrypted_suvs_clientwise)
 		self.deleteVal()
+		return sum_updates
 
 
 
