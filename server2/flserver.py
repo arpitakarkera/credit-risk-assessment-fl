@@ -1,6 +1,7 @@
 import sympy
 import numpy as np
 import json
+import pyDHE
 
 class FLServer:
 	encrypted_suvs_clientwise = {}
@@ -41,13 +42,7 @@ class FLServer:
 		#print(self.encrypted_suvs_clientwise)
 		self.deleteVal()
 		return sum_updates
-
-
-
-	def diffie_parameters(self):
-		g = sympy.randprime(1,100)
-		n = sympy.randprime(10000,100000)
-		return {"g":g,"n":n}
+		
 
 	def perturb_util1(self, dict):
 		#print("DICTIONARY PRINTING:")

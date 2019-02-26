@@ -17,15 +17,18 @@ sa_client = SecureAggregation()
 var = 0
 Alice = None
 pkey = None
+
 updates = []
 
 
 @sio.on('connect')
 def on_connect():
-	global Alice, pkey
+	global Alice, pkey, Alice_server, pkey_server
 	print(' connection established ')
 	Alice = pyDHE.new()
 	pkey = Alice.getPublicKey()
+	sio.emit('authenticate', {'username':'sunaina','password':'pass2'})
+
 
 @sio.on('message')
 def on_message(data):

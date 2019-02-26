@@ -9,7 +9,6 @@ class SecureAggregation:
     """docstring for SecureAggregation."""
     R = 1000
     shared_keys={}
-    diffie_parameters={}
     pub_keys = {}
     puvs = {}
     suv = []
@@ -21,12 +20,6 @@ class SecureAggregation:
 
     def get_shared_key_length(self):
         return len(self.shared_keys)
-
-    def generate_public_key(self, diffie_parameters):
-        self.a = random.randint(1,100)
-        self.diffie_parameters=diffie_parameters
-        pub_key = int(pow(self.diffie_parameters["g"],self.a)) % self.diffie_parameters["n"]
-        return pub_key
 
     def generate_shared_key(self):
 		#print("PUBLIC KEYS SIZE:")

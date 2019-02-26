@@ -13,6 +13,9 @@ import pandas as pd
 sio = socketio.Server(async_mode='eventlet')
 app = socketio.Middleware(sio)
 
+Bob = pyDHE.new(18)
+pkey = Bob.getPublicKey()
+
 count_clients = 0
 conn_threshold  = 3
 update_threshold = 3
@@ -25,11 +28,10 @@ count_shared_done = 0
 fin_weights_str = retry.model_weights_json
 fin_struct = retry.model_json
 fin_weights = []
-
-
+credentials=[{'username':'sunaina','password':'pass'},{'username':'priya','password':'priy@'}]
+shared_keys = {}
 fl_server = FLServer()
 
-diffie_parameters = fl_server.diffie_parameters()
 pub_keys = {}
 
 @sio.on('connect')
@@ -39,7 +41,19 @@ def connect(sid, environ):
     print('connect')
     client_updates[sid] = ""
 
-  #sio.emit('my message', {'data': 'foobar'})
+@sio.on('authenticate')
+def authenticate(sid, dict):
+    global credentials
+    found = False
+    for item in credentials:
+        if dict['username'] == item['username']:
+            found = True
+            if dict['password'] != item['password']:
+                sio.disconnect(sid)
+    if found == False:
+        sio.disconnect(sid)
+
+
 
 @sio.on('message')
 def message(sid, data):
@@ -50,7 +64,7 @@ def disconnect(sid):
     global count_clients
     count_clients-=1
     client_updates.pop(sid)
-    print('disconnect ', sid)
+    print('disconnect', sid)
 
 @sio.on('get_updates')
 def get_updates(sid, update):
@@ -115,14 +129,6 @@ def send_model():
     return False
 
 def diffie_hellman():
-    '''global pub_keys, diffie_parameters
-    sio.emit('receive_diffie_params', diffie_parameters)
-    while len(pub_keys)<count_clients:
-        eventlet.greenthread.sleep(seconds=5)
-    #print (len(pub_keys))
-    print("Inside Diffie Hellman printing public key dictionary")
-    print (pub_keys)
-    sio.emit('receive_pub_keys', pub_keys)'''
     global pub_keys, count_shared_done
     sio.emit('get_public_keys','send me public keys')
     while len(pub_keys)<count_clients:
