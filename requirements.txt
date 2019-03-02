@@ -1,0 +1,14 @@
+flask
+python-engineio
+eventlet
+python-socketio
+numpy
+pyDHE
+pandas
+tensorflow
+keras
+sympy
+pyaes
+crypto
+flask_cors
+pymemcache

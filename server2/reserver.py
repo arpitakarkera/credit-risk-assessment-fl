@@ -40,6 +40,7 @@ fl_server = FLServer()
 
 pub_keys = {}
 
+
 @sio.on('connect')
 def connect(sid, environ):
     global count_clients
@@ -208,7 +209,15 @@ def federating_process():
             print("-------------------------------------------ROUND COMPLETED-----------------------------------------------------------------------------")
 
     print("ALL ROUNDS DONE")
-
+    # modelfile = open('model','w')
+    # modelfile.write(fin_weights_str)
+    # modelfile.close()
+    # model_string = '{"structure" : ' + fin_struct + ', "weights" : ' + fin_weights_str + '}'
+    # dict = json.loads(model_string)
+    # model_tosave = model_from_json(json.dumps(dict["structure"]))
+    # model_weights_tosave = weights_from_json(json.dumps(dict["weights"]))
+    # model_tosave.set_weights(model_weights_tosave)
+    # model_tosave.save('model.h5')
     sio.emit('receive_averaged_model','{"structure" : ' + fin_struct + ', "weights" : ' + fin_weights_str + '}')
 
 
