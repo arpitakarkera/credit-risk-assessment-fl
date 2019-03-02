@@ -176,4 +176,4 @@ def on_receive_suvs(encrypted_suv_clientwise):
 	mem_client.set('updates_status',"Updates sent back to server successfully")
 
 
-sio.connect('http://0.0.0.0:8004')
+sio.connect('http://192.168.43.100:8004')

@@ -4,6 +4,8 @@ var training_status;
 var updates_status;
 var check_status;
 var count = 0;
+var ITER = 10;
+
 function fetchConnectionStatus(){
  $.ajax({
   url: '/getConnectionStatus',
@@ -88,7 +90,7 @@ function checkRoundStatus(){
   }
   else{
     count+=1;
-    if(count>=2){
+    if(count>=ITER){
       $('#buttonDownload').css('visibility', 'visible');
       $("#message").html('Training completed successfully')
     }
