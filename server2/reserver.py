@@ -9,6 +9,7 @@ import pyDHE
 import retry
 from flserver import FLServer
 import pandas as pd
+from keras.models import model_from_json
 
 sio = socketio.Server(async_mode='eventlet')
 app = socketio.Middleware(sio)
@@ -17,6 +18,8 @@ Bob = pyDHE.new(18)
 pkey = Bob.getPublicKey()
 
 count_clients = 0
+count_rounds = 0
+count_auth_clients = 0
 conn_threshold  = 3
 update_threshold = 3
 updates_received = 0
@@ -27,8 +30,9 @@ count_train_done = 0
 count_shared_done = 0
 fin_weights_str = retry.model_weights_json
 fin_struct = retry.model_json
+
 fin_weights = []
-credentials=[{'username':'sunaina','password':'pass'},{'username':'priya','password':'priy@'}]
+credentials=[{'username':'$un@in@','password':'passit'},{'username':'priya','password':'priy@'}]
 shared_keys = {}
 fl_server = FLServer()
 
@@ -43,13 +47,17 @@ def connect(sid, environ):
 
 @sio.on('authenticate')
 def authenticate(sid, dict):
-    global credentials
+    global credentials, count_auth_clients
     found = False
     for item in credentials:
         if dict['username'] == item['username']:
             found = True
             if dict['password'] != item['password']:
                 sio.disconnect(sid)
+            else:
+                print('connection authenticated')
+                count_auth_clients+=1
+                break
     if found == False:
         sio.disconnect(sid)
 
@@ -105,7 +113,7 @@ def shared_key_status(sid, data):
     print("shared status: "+ data)
 
 def connServ():
-    eventlet.wsgi.server(eventlet.listen(('', 8003)), app)
+    eventlet.wsgi.server(eventlet.listen(('', 8004)), app)
 
 '''
 def emitServ():
@@ -115,8 +123,9 @@ def emitServ():
 '''
 
 def send_model():
-    global count_clients, conn_threshold, count_train_done, fin_weights, fin_weights_str
-    if count_clients >= conn_threshold :
+    global count_clients, conn_threshold, count_train_done, fin_weights, fin_weights_str, count_auth_clients
+    if count_clients >= conn_threshold and count_clients == count_auth_clients:
+
         print('threshold reached')
         #model_parameters = fl_server.pass_model_parameters()
         #sio.emit('message','server sent you data')
@@ -161,38 +170,45 @@ def secure_agg():
 
 
 def federating_process():
-  global count_clients, updates_received, update_threshold, client_updates, suv_dictionary, fin_weights, fin_weights_str
-  while True:
-    eventlet.greenthread.sleep(seconds=5)
-    if  send_model():
-        #secure_agg()
-        print("INSIDE SEND MODEL")
-        #eventlet.greenthread.sleep(seconds=server_wait_time)
-        secure_agg()
-        while updates_received < count_clients:
-            eventlet.greenthread.sleep(seconds=5)
+    global count_clients, updates_received, update_threshold, client_updates, suv_dictionary, fin_weights, fin_weights_str, count_rounds
+    while count_rounds<2:
+        print("IN WHILE")
+        eventlet.greenthread.sleep(seconds=5)
+        if  send_model():
+            #secure_agg()
+            print("INSIDE SEND MODEL")
+            #eventlet.greenthread.sleep(seconds=server_wait_time)
+            secure_agg()
+            while updates_received < count_clients:
+                eventlet.greenthread.sleep(seconds=5)
 
         #print("PRINTING CLIENT UPDATES:")
         #print(client_updates)
         #for key, value in client_updates.items():
         #    if not value:
         #        sio.emit('message','stop training. new model on the way', room=key)
-        sum_updates = fl_server.averaging(client_updates)
-        for i in range(0,len(sum_updates)):
-            print(fin_weights[i].shape)
-            print(sum_updates[i].shape)
-            fin_weights[i] = np.add(fin_weights[i],sum_updates[i])
+            sum_updates = fl_server.averaging(client_updates)
+            for i in range(0,len(sum_updates)):
+                print(fin_weights[i].shape)
+                print(sum_updates[i].shape)
+                fin_weights[i] = np.add(fin_weights[i],sum_updates[i])
 
-        fin_weights_str = pd.Series(fin_weights).to_json(orient='values')
-        sio.emit('clear_round','Clear the round rn')
+            fin_weights_str = pd.Series(fin_weights).to_json(orient='values')
+            sio.emit('clear_round','Clear the round rn')
       #print (client_updates)
-        for key, value in client_updates.items():
-            client_updates[key] = ""
-        updates_received = 0
-        suv_dictionary = {}
-        count_train_done = 0
-        count_shared_done = 0
-        print("-------------------------------------------ROUND COMPLETED-----------------------------------------------------------------------------")
+            for key, value in client_updates.items():
+                client_updates[key] = ""
+            updates_received = 0
+            suv_dictionary = {}
+            count_train_done = 0
+            count_shared_done = 0
+            count_rounds += 1
+            print("-------------------------------------------ROUND COMPLETED-----------------------------------------------------------------------------")
+
+    print("ALL ROUNDS DONE")
+
+    sio.emit('receive_averaged_model','{"structure" : ' + fin_struct + ', "weights" : ' + fin_weights_str + '}')
+
 
 
 

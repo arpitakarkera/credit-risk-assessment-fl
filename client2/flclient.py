@@ -6,12 +6,11 @@ import pandas as pd
 import json
 
 DATA_FILE = "../data.csv"
-EPOCHS = 150
+EPOCHS = 50
 BATCH_SIZE = 10
 
 class FLClient:
 
-	updates  = []
 	def __init__(self):
 		print(" fl_client object made ")
 		self.model = None
@@ -19,6 +18,7 @@ class FLClient:
 		data = np.loadtxt(DATA_FILE, delimiter=",")
 		self.X = data[:,0:8]
 		self.Y = data[:,8]
+		self.updates  = []
 
 	def weights_from_json(self,model_weights_json):
 		json_load = json.loads(model_weights_json)

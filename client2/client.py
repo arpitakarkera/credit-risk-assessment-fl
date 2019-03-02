@@ -2,6 +2,8 @@ import socketio
 import json
 import pyDHE
 import time
+from pymemcache.client import base
+
 
 #import logging as log
 from secure_aggregation import SecureAggregation
@@ -14,21 +16,44 @@ sio = socketio.Client()
 
 fl_client = None
 sa_client = SecureAggregation()
+mem_client = base.Client(('localhost', 11211))
+mem_client.set('connection',"Connection not established")
+mem_client.set('model_parameters',"Waiting for others to connect")
+mem_client.set('training_status',"Training Received Model on Local Data")
+mem_client.set('updates_status',"Federated Averaging in Process")
+mem_client.set('clear_round_success','Server averaging the updates')
+mem_client.set('username',"")
+mem_client.set('password',"")
+mem_client.set('model','')
+
 var = 0
 Alice = None
 pkey = None
-
+credentials = {}
 updates = []
 
 
 @sio.on('connect')
 def on_connect():
-	global Alice, pkey, Alice_server, pkey_server
-	print(' connection established ')
+	global Alice, pkey, Alice_server, pkey_server, credentials
+
 	Alice = pyDHE.new()
 	pkey = Alice.getPublicKey()
-	sio.emit('authenticate', {'username':'sunaina','password':'pass2'})
+	while not mem_client.get('username') or not mem_client.get('password'):
+		time.sleep(5)
+		#continue
+	print(' connection established ')
+	credentials['username'] = mem_client.get('username').decode('utf-8')
+	credentials['password'] = mem_client.get('password').decode('utf-8')
+	sio.emit('authenticate', credentials)
+	mem_client.set('connection',"Connection Successfully Established")
+	#mem_client.set('connection',"Connection Successfully Established")
 
+
+@sio.on('receive_averaged_model')
+def receive_averaged_model(model_string):
+	mem_client.set('model',model_string)
+	#sio.emit('disconnect')
 
 @sio.on('message')
 def on_message(data):
@@ -38,7 +63,15 @@ def on_message(data):
 
 @sio.on('disconnect')
 def on_disconnect():
-    print(' disconnected from server ')
+	global credentials
+	credentials['username'] = None
+	credentials['password'] = None
+	mem_client.set('connection',"Connection not established")
+	mem_client.set('model_parameters',"Waiting for model to be received")
+	mem_client.set('training_status',"Training Received Model on Local Data")
+	mem_client.set('updates_status',"Federated Averaging in Process")
+	mem_client.set('clear_round_success','Server averaging the updates')
+	print(' disconnected from server ')
 
 @sio.on('send_perturbs')
 def on_send_perturbs(data):
@@ -104,18 +137,28 @@ def on_clear_round(data):
 	updates = []
 	sa_client.deleteVal()
 
+	mem_client.set('model_parameters',"Waiting for model to be received")
+	mem_client.set('training_status',"Training Received Model on Local Data")
+	mem_client.set('updates_status',"Federated Averaging in Process")
+
+
+	mem_client.set('clear_round_success','Round completed')
+
+
 @sio.on('receive_model')
 def on_receive_model(model_json):
-	global updates
+	global updates, count
 	print('message received with ', model_json)
+	mem_client.set('model_parameters',"Model downloaded successfully")
 	fl_client = FLClient()
+	#count = fl_client.return_count()
 	dict = json.loads(model_json)
 	model = model_from_json(json.dumps(dict["structure"]))
 	fl_client.set_model(model)
 	model_weights = fl_client.weights_from_json(json.dumps(dict["weights"]))
 	fl_client.set_weights(model_weights)
 	updates = fl_client.train_model(model_weights)
-
+	mem_client.set('training_status',"Training completed successfully")
 	sio.emit('training_status','training done')
 	#updates_json = fl_client.get_updates_json(model_weights)
 
@@ -130,6 +173,7 @@ def on_receive_model(model_json):
 def on_receive_suvs(encrypted_suv_clientwise):
 	sa_client.decryption(encrypted_suv_clientwise)
 	sio.emit('get_updates', sa_client.create_update())
+	mem_client.set('updates_status',"Updates sent back to server successfully")
 
 
-sio.connect('http://0.0.0.0:8003')
+sio.connect('http://192.168.43.17:8004')
