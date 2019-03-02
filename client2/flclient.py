@@ -5,9 +5,10 @@ from  numpy import array
 import pandas as pd
 import json
 
-DATA_FILE = "../data.csv"
-EPOCHS = 50
-BATCH_SIZE = 10
+DATA_FILE_X = "../data/xtrain.csv"
+DATA_FILE_Y = "../data/ytrain.csv"
+EPOCHS = 10
+BATCH_SIZE = 5000
 
 class FLClient:
 
@@ -15,9 +16,9 @@ class FLClient:
 		print(" fl_client object made ")
 		self.model = None
 		self.current_model_version = 0
-		data = np.loadtxt(DATA_FILE, delimiter=",")
-		self.X = data[:,0:8]
-		self.Y = data[:,8]
+		# data = np.loadtxt(DATA_FILE, delimiter=",")
+		self.X = pd.read_csv(DATA_FILE_X)
+		self.Y = pd.read_csv(DATA_FILE_Y)
 		self.updates  = []
 
 	def weights_from_json(self,model_weights_json):

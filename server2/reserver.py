@@ -11,6 +11,8 @@ from flserver import FLServer
 import pandas as pd
 from keras.models import model_from_json
 
+NO_OF_ROUNDS = 10
+
 sio = socketio.Server(async_mode='eventlet')
 app = socketio.Middleware(sio)
 
@@ -171,7 +173,7 @@ def secure_agg():
 
 def federating_process():
     global count_clients, updates_received, update_threshold, client_updates, suv_dictionary, fin_weights, fin_weights_str, count_rounds
-    while count_rounds<2:
+    while count_rounds<NO_OF_ROUNDS:
         print("IN WHILE")
         eventlet.greenthread.sleep(seconds=5)
         if  send_model():
