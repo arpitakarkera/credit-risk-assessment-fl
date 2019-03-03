@@ -190,7 +190,7 @@ def federating_process():
         #for key, value in client_updates.items():
         #    if not value:
         #        sio.emit('message','stop training. new model on the way', room=key)
-            sum_updates = fl_server.averaging(client_updates)
+            sum_updates = fl_server.averaging(client_updates, count_clients)
             for i in range(0,len(sum_updates)):
                 print(fin_weights[i].shape)
                 print(sum_updates[i].shape)

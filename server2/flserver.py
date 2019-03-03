@@ -23,7 +23,7 @@ class FLServer:
 			model_weights.append(np.array(i,dtype=np.float32))
 		return model_weights
 
-	def averaging(self, updates):
+	def averaging(self, updates, count_clients):
 		for key, value in updates.items():
 			updates[key] = self.weights_from_json(value)
 		sum_updates = []
@@ -36,13 +36,14 @@ class FLServer:
 			for i in range(0, len(value)):
 				sum_updates[i] = np.add(sum_updates[i], value[i])
 
+		sum_updates = sum_updates / count_clients
 		print("PRINTING SUM UPDATES:")
 		print(sum_updates)
 		#print("ENCRYPTED SUVS CLIENTWISE")
 		#print(self.encrypted_suvs_clientwise)
 		self.deleteVal()
 		return sum_updates
-		
+
 
 	def perturb_util1(self, dict):
 		#print("DICTIONARY PRINTING:")
