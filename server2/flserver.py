@@ -36,7 +36,9 @@ class FLServer:
 			for i in range(0, len(value)):
 				sum_updates[i] = np.add(sum_updates[i], value[i])
 
-		sum_updates = sum_updates / count_clients
+		for i in range(0, len(sum_updates)):
+			sum_updates[i] = sum_updates[i] / count_clients
+
 		print("PRINTING SUM UPDATES:")
 		print(sum_updates)
 		#print("ENCRYPTED SUVS CLIENTWISE")
