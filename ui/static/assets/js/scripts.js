@@ -4,7 +4,7 @@ var training_status;
 var updates_status;
 var check_status;
 var count = 0;
-var ITER = 10;
+var ITER = 2;
 
 function fetchConnectionStatus(){
  $.ajax({

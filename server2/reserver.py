@@ -11,7 +11,7 @@ from flserver import FLServer
 import pandas as pd
 from keras.models import model_from_json
 
-NO_OF_ROUNDS = 10
+NO_OF_ROUNDS = 2
 
 sio = socketio.Server(async_mode='eventlet')
 app = socketio.Middleware(sio)

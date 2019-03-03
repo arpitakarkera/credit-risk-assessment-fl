@@ -7,7 +7,7 @@ import json
 
 DATA_FILE_X = "../data/xtrain.csv"
 DATA_FILE_Y = "../data/ytrain.csv"
-EPOCHS = 10
+EPOCHS = 5
 BATCH_SIZE = 5000
 
 class FLClient:

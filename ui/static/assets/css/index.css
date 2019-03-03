@@ -2,7 +2,6 @@
 
 .login-page {
   width: 360px;
-  padding: 8% 0 0;
   margin: auto;
 }
 .form {
@@ -15,6 +14,15 @@
   text-align: center;
   box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
 }
+
+.title{
+  color: white;
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  font-size: 70px;
+  margin-top: 200px;
+
+}
+
 .form input {
   font-family: "Roboto", sans-serif;
   outline: 0;
@@ -67,7 +75,6 @@
   clear: both;
 }
 .container .info {
-  margin: 50px auto;
   text-align: center;
 }
 .container .info h1 {
@@ -89,12 +96,10 @@
   color: #EF3B3A;
 }
 body {
-  background: #76b852; /* fallback for old browsers */
-  background: -webkit-linear-gradient(right, #76b852, #8DC26F);
-  background: -moz-linear-gradient(right, #76b852, #8DC26F);
-  background: -o-linear-gradient(right, #76b852, #8DC26F);
-  background: linear-gradient(to left, #76b852, #8DC26F);
-  font-family: "Roboto", sans-serif;
+  background: #999;
+  background: #999 -moz-radial-gradient(circle farthest-side, #333333, #111111);
+  background: #999 -webkit-radial-gradient(circle farthest-side, #333333, #111111);
+  background: #999 radial-gradient(circle farthest-side, #333333, #111111);  font-family: "Roboto", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
