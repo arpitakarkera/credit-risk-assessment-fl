@@ -53,7 +53,7 @@ def on_connect():
 @sio.on('receive_averaged_model')
 def receive_averaged_model(model_string):
 	mem_client.set('model',model_string)
-	#sio.emit('disconnect')
+	sio.emit('disconnect')
 
 @sio.on('message')
 def on_message(data):
