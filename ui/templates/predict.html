@@ -1,10 +1,263 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html>
   <head>
-    <meta charset="utf-8">
-    <title> Cra.fl Prediction Engine</title>
+
+
+    
+    <title>Contact V14</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--===============================================================================================-->
+    <link rel="icon" type="image/png" href="images/icons/favicon.ico"/>
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="fonts/iconic/css/material-design-iconic-font.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/css-hamburgers/hamburgers.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/animsition/css/animsition.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/daterangepicker/daterangepicker.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="static/assets/css/util.css">
+    <link rel="stylesheet" type="text/css" href="static/assets/css/main.css">
+    <!--===============================================================================================-->
   </head>
-  <body>
-<h1>Cra.fl Prediction Engine</h1>
-  </body>
+   <body>
+
+     <div class="container-contact100">
+     <div class="wrap-contact100">
+     <form class="contact100-form validate-form" action="/predict" method="POST">
+     <span class="contact100-form-title">
+     Prediction Form
+     </span>
+
+
+    <!--    <form action = "/predict" method = "POST">-->
+
+
+          <div class="wrap-input100 rs1 validate-input">
+          <select required class="input100" id="purpose" name="purpose">
+          <option value="" disabled selected hidden>Purpose</option>
+          <option value="debt_consolidation">Debt Consolidation</option>
+          <option value="credit_card">Credit Card</option>
+          <option value="home_improvement">Home Improvement</option>
+          <option value="other">Other</option>
+          <option value="major_purchase">Major Purchase</option>
+          <option value="medical">Medical</option>
+          <option value="small_business">Small Business</option>
+          <option value="car">Car</option>
+          <option value="moving">Moving</option>
+          <option value="vacation">Vacation</option>
+          <option value="house">House</option>
+          <option value="wedding">Wedding</option>
+          <option value="renewable_energy">Renewable Energy</option>
+          <option value="educational">Educational</option>
+          </select>
+          <!-- <input id="first-name" class="input100" type="text" name="first-name" placeholder="First name"> -->
+
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          <input class="input100" type="number" step="any" name="installment" id="installment" placeholder="Installment">
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          <input class="input100" type="number" step="any" name="annual_inc" id="annual_inc" placeholder="Annual Income">
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          <input name="dti" id="dti" class="input100" type="number" step="any" placeholder="Debt to Income Ratio">
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          	<input class="input100" type="number" name="fico" id="fico" step="any" placeholder="Credit Score">
+          <!-- <input id="first-name" class="input100" type="text" name="first-name" placeholder="First name"> -->
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          <input class="input100" type="number" step="any" name="revol_bal" id="revol_bal" placeholder="Revolving Balance">
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          	<input class="input100" type="number" step="any" name="revol_util" id="revol_util" placeholder="Revolving Utilities">
+          <!-- <input id="first-name" class="input100" type="text" name="first-name" placeholder="First name"> -->
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          <input class="input100" type="number" step="any" name="inq_last_2m" id="inq_last_2m" placeholder="Inquiry last 12 months">
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          	<input class="input100" type="number" type="number" step="any" name="delinq_2yrs" id="=delinq_2yrs" placeholder="Delinquency in last 2 year">
+          <!-- <input id="first-name" class="input100" type="text" name="first-name" placeholder="First name"> -->
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          <input class="input100" type="number" step="any" name="pub_rec" id="pub_rec" placeholder="Public Record">
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          	<select required class="input100" id="addr_state" name="addr_state">
+
+          	               <!-- option value="" selected="selected">Select a State</option -->
+          	               <option value="" disabled selected hidden>Address State</option>
+          	               <option value="AL">Alabama</option>
+          	               <option value="AK">Alaska</option>
+          	               <option value="AZ">Arizona</option>
+          	               <option value="AR">Arkansas</option>
+          	               <option value="CA">California</option>
+          	               <option value="CO">Colorado</option>
+          	               <option value="CT">Connecticut</option>
+          	               <option value="DE">Delaware</option>
+          	               <option value="DC">District Of Columbia</option>
+          	               <option value="FL">Florida</option>
+          	               <option value="GA">Georgia</option>
+          	               <option value="HI">Hawaii</option>
+          	               <option value="ID">Idaho</option>
+          	               <option value="IL">Illinois</option>
+          	               <option value="IN">Indiana</option>
+          	               <option value="IA">Iowa</option>
+          	               <option value="KS">Kansas</option>
+          	               <option value="KY">Kentucky</option>
+          	               <option value="LA">Louisiana</option>
+          	               <option value="ME">Maine</option>
+          	               <option value="MD">Maryland</option>
+          	               <option value="MA">Massachusetts</option>
+          	               <option value="MI">Michigan</option>
+          	               <option value="MN">Minnesota</option>
+          	               <option value="MS">Mississippi</option>
+          	               <option value="MO">Missouri</option>
+          	               <option value="MT">Montana</option>
+          	               <option value="NE">Nebraska</option>
+          	               <option value="NV">Nevada</option>
+          	               <option value="NH">New Hampshire</option>
+          	               <option value="NJ">New Jersey</option>
+          	               <option value="NM">New Mexico</option>
+          	               <option value="NY">New York</option>
+          	               <option value="NC">North Carolina</option>
+          	               <option value="ND">North Dakota</option>
+          	               <option value="OH">Ohio</option>
+          	               <option value="OK">Oklahoma</option>
+          	               <option value="OR">Oregon</option>
+          	               <option value="PA">Pennsylvania</option>
+          	               <option value="RI">Rhode Island</option>
+          	               <option value="SC">South Carolina</option>
+          	               <option value="SD">South Dakota</option>
+          	               <option value="TN">Tennessee</option>
+          	               <option value="TX">Texas</option>
+          	               <option value="UT">Utah</option>
+          	               <option value="VT">Vermont</option>
+          	               <option value="VA">Virginia</option>
+          	               <option value="WA">Washington</option>
+          	               <option value="WV">West Virginia</option>
+          	               <option value="WI">Wisconsin</option>
+          	               <option value="WY">Wyoming</option>
+          	           </select>
+
+
+          <!-- <input id="first-name" class="input100" type="text" name="first-name" placeholder="First name"> -->
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          	<select required class="input100" id="emp_length" name="emp_length">
+          	             <option value="" disabled selected hidden>Employment Length</option>
+          	             <option value="0">None</option>
+          	             <option value="1">Less than 1 year</option>
+          	             <option value="2">1 year</option>
+          	             <option value="3">2 years</option>
+          	             <option value="4">3 years</option>
+          	             <option value="5">4 years</option>
+          	             <option value="6">5 years</option>
+          	             <option value="7">6 years</option>
+          	             <option value="8">7 years</option>
+          	             <option value="9">8 years</option>
+          	             <option value="10">9 years</option>
+          	             <option value="11">10 years</option>
+          	             <option value="12">More than 10 years</option>
+          	           </select><span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          	<select required class="input100" id="home_ownership" name="home_ownership">
+          	             <option value="" disabled selected hidden>Home Ownership</option>
+          	             <option value="MORTGAGE">Mortgage</option>
+          	             <option value="RENT">Rent</option>
+          	             <option value="OWN">Own</option>
+          	             <option value="ANY">Any</option>
+          	             <option value="OTHER">Other</option>
+          	             <option value="NONE">None</option>
+          	           </select>
+
+          <!-- <input id="first-name" class="input100" type="text" name="first-name" placeholder="First name"> -->
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          <input class="input100" type="number" name="mths_since_last_delinq" id="mths_since_last_delinq" placeholder="Months since last Delinquency">
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          	<select required class="input100" id="term" name="term">
+          	             <option value="" disabled selected hidden>Term</option>
+          	             <option value="36">36</option>
+          	             <option value="60">60</option>
+          	           </select><span class="focus-input100"></span>
+          </div>
+
+
+
+          <div class="wrap-input100 rs1 validate-input">
+          <input class="input100" type = "number" step = "any" name = "chargeoff_within_12_mths"  id = "chargeoff_within_12_mths" placeholder="Charge off within 12 months">
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          <input class="input100" type = "number" step = "any" name = "loan_amnt"  id = "loan_amnt" placeholder="Loan Amount">
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 rs1 validate-input">
+          <input class="input100" type = "number" step = "any" name = "open_acc"  id = "open_acc" placeholder="Open Accounts">
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="wrap-input100 validate-input">
+          <input class="input100" type = "number" step = "any" name = "total_acc"  id = "total_acc" placeholder="Total Accounts">
+          <span class="focus-input100"></span>
+          </div>
+
+          <div class="container-contact100-form-btn">
+          <button type="submit" class="contact100-form-btn">
+          <span>
+          Predict
+          <i class="zmdi zmdi-arrow-right m-l-8"></i>
+          </span>
+          </button>
+          </div>
+
+
+      <!--  </form> -->
+
+
+
+   </body>
 </html>
