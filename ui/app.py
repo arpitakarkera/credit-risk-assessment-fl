@@ -171,11 +171,18 @@ def getModel():
     model = model_from_json(json.dumps(dict["structure"]))
     model_weights = weights_from_json(json.dumps(dict["weights"]))
     model.set_weights(model_weights)
+    # if os.path.exists('models/model.h5'):
+    #      os.remove('models/model.h5')
+    #      print('INSIDE')
+    # model.save('models/model.h5')
+    return predictResult()
+
+@app.route('/predictResult')
+def predictResult():
     if os.path.exists('models/model.h5'):
-         os.remove('models/model.h5')
-         print('INSIDE')
-    model.save('models/model.h5')
-    return render_template('predict.html')
+        return render_template('predict.html')
+    else:
+        return 'Model Not Found'
 
 
 if __name__ == '__main__':

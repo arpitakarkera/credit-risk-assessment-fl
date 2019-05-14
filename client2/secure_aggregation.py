@@ -114,11 +114,14 @@ class SecureAggregation:
 
 		#self.bu= np.random.randint(R, size=(m,n))
 		#self.update += sum_puv
+
+        print(len(self.updates))
+        print(len(self.puvs))
         for i in range(0, len(self.updates)):
             self.updates[i] = np.add(self.updates[i],sum_puv[i])
 		#self.update += self.bu
-        print("update")
-        print(self.updates)
+        # print("update")
+        # print(self.updates)
         updates = pd.Series(self.updates).to_json(orient='values')
 		#print("LIST UPDATE:")
 		#print(self.update)

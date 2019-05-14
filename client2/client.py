@@ -31,6 +31,7 @@ Alice = None
 pkey = None
 credentials = {}
 updates = []
+iter = 0
 
 
 @sio.on('connect')
@@ -147,10 +148,11 @@ def on_clear_round(data):
 
 @sio.on('receive_model')
 def on_receive_model(model_json):
-	global updates, count
+	global updates, count, iter
 	print('message received with ', model_json)
 	mem_client.set('model_parameters',"Model downloaded successfully")
-	fl_client = FLClient()
+	iter += 1
+	fl_client = FLClient(iter)
 	#count = fl_client.return_count()
 	dict = json.loads(model_json)
 	model = model_from_json(json.dumps(dict["structure"]))

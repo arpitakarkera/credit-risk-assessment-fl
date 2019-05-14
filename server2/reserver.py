@@ -11,7 +11,9 @@ from flserver import FLServer
 import pandas as pd
 from keras.models import model_from_json
 
-NO_OF_ROUNDS = 2
+res_file = "../result/serverres"
+
+NO_OF_ROUNDS = 10
 
 sio = socketio.Server(async_mode='eventlet')
 app = socketio.Middleware(sio)
@@ -51,18 +53,20 @@ def connect(sid, environ):
 @sio.on('authenticate')
 def authenticate(sid, dict):
     global credentials, count_auth_clients
-    found = False
-    for item in credentials:
-        if dict['username'] == item['username']:
-            found = True
-            if dict['password'] != item['password']:
-                sio.disconnect(sid)
-            else:
-                print('connection authenticated')
-                count_auth_clients+=1
-                break
-    if found == False:
-        sio.disconnect(sid)
+    found = True
+    print('connection authenticated')
+    count_auth_clients+=1
+    # for item in credentials:
+    #     if dict['username'] == item['username']:
+    #         found = True
+    #         if dict['password'] != item['password']:
+    #             sio.disconnect(sid)
+    #         else:
+    #             print('connection authenticated')
+    #             count_auth_clients+=1
+    #             break
+    # if found == False:
+    #     sio.disconnect(sid)
 
 
 
@@ -175,11 +179,11 @@ def secure_agg():
 def federating_process():
     global count_clients, updates_received, update_threshold, client_updates, suv_dictionary, fin_weights, fin_weights_str, count_rounds
     while count_rounds<NO_OF_ROUNDS:
-        print("IN WHILE")
+        # print("IN WHILE")
         eventlet.greenthread.sleep(seconds=5)
         if  send_model():
             #secure_agg()
-            print("INSIDE SEND MODEL")
+            # print("INSIDE SEND MODEL")
             #eventlet.greenthread.sleep(seconds=server_wait_time)
             secure_agg()
             while updates_received < count_clients:
@@ -192,9 +196,17 @@ def federating_process():
         #        sio.emit('message','stop training. new model on the way', room=key)
             sum_updates = fl_server.averaging(client_updates, count_clients)
             for i in range(0,len(sum_updates)):
-                print(fin_weights[i].shape)
-                print(sum_updates[i].shape)
+                # print(fin_weights[i].shape)
+                # print(sum_updates[i].shape)
                 fin_weights[i] = np.add(fin_weights[i],sum_updates[i])
+
+            # print("Server round "+str(count_rounds)+" calculating result")
+            # model = retry.model
+            # model.set_weights(fin_weights)
+            # score = model.evaluate(test_data,test_labels,verbose=1)
+            # res_file_handler = open(res_file+str(count_rounds),"wb")
+            # pickle.dump(score,res_file_handler)
+            # res_file_handler.close()
 
             fin_weights_str = pd.Series(fin_weights).to_json(orient='values')
             sio.emit('clear_round','Clear the round rn')
@@ -206,7 +218,7 @@ def federating_process():
             count_train_done = 0
             count_shared_done = 0
             count_rounds += 1
-            print("-------------------------------------------ROUND COMPLETED-----------------------------------------------------------------------------")
+            print(count_rounds,"-------------------------------------------ROUND COMPLETED-----------------------------------------------------------------------------")
 
     print("ALL ROUNDS DONE")
     # modelfile = open('model','w')

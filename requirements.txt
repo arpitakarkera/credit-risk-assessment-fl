@@ -12,3 +12,4 @@ pyaes
 crypto
 flask_cors
 pymemcache
+category_encoders
