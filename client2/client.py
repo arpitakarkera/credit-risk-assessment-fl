@@ -12,6 +12,8 @@ from keras import backend as K
 from keras.models import model_from_json
 import tensorflow as tf
 
+
+
 sio = socketio.Client()
 
 fl_client = None
@@ -178,4 +180,4 @@ def on_receive_suvs(encrypted_suv_clientwise):
 	mem_client.set('updates_status',"Updates sent back to server successfully")
 
 
-sio.connect('http://192.168.43.248:8004')
+sio.connect('http://127.0.0.1:8004')

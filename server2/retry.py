@@ -1,62 +1,62 @@
-# from keras.models import Sequential
-# from keras.layers import Dense
-# from keras.models import model_from_json
-# import numpy as np
-# import pandas as pd
-# import json
-# import tensorflow as tf
-#
-# from privacy.analysis.rdp_accountant import compute_rdp
-# from privacy.analysis.rdp_accountant import get_privacy_spent
-# from privacy.dp_query.gaussian_query import GaussianAverageQuery
-# from privacy.optimizers.dp_optimizer import DPGradientDescentOptimizer
-#
-# tf.flags.DEFINE_float('noise_multiplier', 1.1, 'Ratio of the standard deviation to the clipping norm')
-# tf.flags.DEFINE_float('l2_norm_clip', 1.0, 'Clipping norm')
-# tf.flags.DEFINE_integer('batch_size', 500, 'Batch size')
-# tf.flags.DEFINE_integer('epochs', 20, 'Number of epochs')
-# tf.flags.DEFINE_boolean('dpsgd', True, 'If True, train with DP-SGD. If False, ''train with vanilla SGD.')
-# tf.flags.DEFINE_float('learning_rate', 0.15, 'Learning rate for training')
-# tf.flags.DEFINE_integer('microbatches', 1, 'Number of microbatches ' '(must evenly divide batch_size)')
-#
-# FLAGS = tf.flags.FLAGS
-#
-#
-# EPOCHS = 1000
-# BATCH_SIZE = 5000
-# X = pd.read_csv("../data/x10k.csv")
-# Y = pd.read_csv("../data/y10k.csv")
-# test_data = pd.read_csv("../data/x1k.csv")
-# test_labels = pd.read_csv("../data/y1k.csv")
-#
-# dp_average_query = GaussianAverageQuery(FLAGS.l2_norm_clip,FLAGS.l2_norm_clip * FLAGS.noise_multiplier,FLAGS.microbatches)
-# optimizer = DPGradientDescentOptimizer(dp_average_query,FLAGS.microbatches,learning_rate=FLAGS.learning_rate,unroll_microbatches=True)
-# loss = tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction=tf.losses.Reduction.NONE)
-#
-# model = Sequential()
-# model.add(Dense(20, input_dim=43, activation="relu", kernel_initializer="uniform"))
-# model.add(Dense(10, activation="relu", kernel_initializer="uniform"))
-# model.add(Dense(1, activation="sigmoid", kernel_initializer="uniform"))
-#
-# model.compile(loss=loss, optimizer=optimizer, metrics=['accuracy'])
-
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.models import model_from_json
 import numpy as np
 import pandas as pd
 import json
+import tensorflow as tf
+
+from privacy.analysis.rdp_accountant import compute_rdp
+from privacy.analysis.rdp_accountant import get_privacy_spent
+from privacy.dp_query.gaussian_query import GaussianAverageQuery
+from privacy.optimizers.dp_optimizer import DPGradientDescentOptimizer
+
+tf.flags.DEFINE_float('noise_multiplier', 1.1, 'Ratio of the standard deviation to the clipping norm')
+tf.flags.DEFINE_float('l2_norm_clip', 1.0, 'Clipping norm')
+tf.flags.DEFINE_integer('batch_size', 500, 'Batch size')
+tf.flags.DEFINE_integer('epochs', 20, 'Number of epochs')
+tf.flags.DEFINE_boolean('dpsgd', True, 'If True, train with DP-SGD. If False, ''train with vanilla SGD.')
+tf.flags.DEFINE_float('learning_rate', 0.15, 'Learning rate for training')
+tf.flags.DEFINE_integer('microbatches', 1, 'Number of microbatches ' '(must evenly divide batch_size)')
+
+FLAGS = tf.flags.FLAGS
 
 
+EPOCHS = 1000
+BATCH_SIZE = 5000
+X = pd.read_csv("../data/x10k.csv")
+Y = pd.read_csv("../data/y10k.csv")
 test_data = pd.read_csv("../data/x1k.csv")
 test_labels = pd.read_csv("../data/y1k.csv")
+
+dp_average_query = GaussianAverageQuery(FLAGS.l2_norm_clip,FLAGS.l2_norm_clip * FLAGS.noise_multiplier,FLAGS.microbatches)
+optimizer = DPGradientDescentOptimizer(dp_average_query,FLAGS.microbatches,learning_rate=FLAGS.learning_rate,unroll_microbatches=True)
+loss = tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction=tf.losses.Reduction.NONE)
 
 model = Sequential()
 model.add(Dense(20, input_dim=43, activation="relu", kernel_initializer="uniform"))
 model.add(Dense(10, activation="relu", kernel_initializer="uniform"))
 model.add(Dense(1, activation="sigmoid", kernel_initializer="uniform"))
 
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.compile(loss=loss, optimizer=optimizer, metrics=['accuracy'])
+
+# from keras.models import Sequential
+# from keras.layers import Dense
+# from keras.models import model_from_json
+# import numpy as np
+# import pandas as pd
+# import json
+#
+#
+# test_data = pd.read_csv("../data/x1k.csv")
+# test_labels = pd.read_csv("../data/y1k.csv")
+#
+# model = Sequential()
+# model.add(Dense(20, input_dim=43, activation="relu", kernel_initializer="uniform"))
+# model.add(Dense(10, activation="relu", kernel_initializer="uniform"))
+# model.add(Dense(1, activation="sigmoid", kernel_initializer="uniform"))
+#
+# model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 
 

@@ -10,10 +10,11 @@ import retry
 from flserver import FLServer
 import pandas as pd
 from keras.models import model_from_json
+import pickle
 
-res_file = "../result/serverres"
+res_file = "../sresult/serverres"
 
-NO_OF_ROUNDS = 10
+NO_OF_ROUNDS = 20
 
 sio = socketio.Server(async_mode='eventlet')
 app = socketio.Middleware(sio)
@@ -204,9 +205,9 @@ def federating_process():
             # model = retry.model
             # model.set_weights(fin_weights)
             # score = model.evaluate(test_data,test_labels,verbose=1)
-            # res_file_handler = open(res_file+str(count_rounds),"wb")
-            # pickle.dump(score,res_file_handler)
-            # res_file_handler.close()
+            res_file_handler = open(res_file+str(count_rounds),"wb")
+            pickle.dump(fin_weights,res_file_handler)
+            res_file_handler.close()
 
             fin_weights_str = pd.Series(fin_weights).to_json(orient='values')
             sio.emit('clear_round','Clear the round rn')
